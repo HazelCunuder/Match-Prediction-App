@@ -1,6 +1,7 @@
 # Environnements virtuels
 env/
 venv/
+.venv
 .venv/
 FastAPI_App/venv/
 FastAPI_ML/venv/
