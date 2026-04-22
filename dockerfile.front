@@ -3,11 +3,11 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY match_prediction_app-front/package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY match_prediction_app-front/ .
 
 RUN npm run build
 
