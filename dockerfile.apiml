@@ -8,7 +8,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY FastAPI_ML/app ./app
 
+COPY Data ./Data
+
 COPY shared ./shared
+
+COPY .env .env
 
 EXPOSE 8001
 

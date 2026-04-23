@@ -37,23 +37,31 @@ async def lifespan(_: FastAPI):
     Toutes les opérations de démarrage DB sont ici.
     Utiliser lifespan évite les crashs au niveau module et les problèmes de hot-reload.
     """
-    from .database import SessionLocal
+    from .database import SessionLocal, Base, engine
     from .models.user import User
     from .models.team import Team
 
+    Base.metadata.create_all(bind=engine)
+
     db = SessionLocal()
     try:
-        # 1. Utilisateur par défaut (dev)
-        if not db.query(User).filter(User.id == 1).first():
-            default_user = User(
-                id=1,
-                username="dev_user",
-                email="dev@example.com",
-                hashed_password="fake_hashed_password",
-            )
-            db.add(default_user)
-            db.commit()
-            print("✅ Utilisateur dev créé.")
+        # 1. Utilisateur par défaut (dev) - créer seulement s'il n'existe pas
+        try:
+            dev_user = db.query(User).filter(User.email == "dev@example.com").first()
+            if not dev_user:
+                default_user = User(
+                    username="dev_user",
+                    email="dev@example.com",
+                    hashed_password="fake_hashed_password",
+                )
+                db.add(default_user)
+                db.commit()
+                print("✅ Utilisateur dev créé.")
+            else:
+                print("ℹ️  Utilisateur dev déjà présent.")
+        except Exception as e:
+            db.rollback()
+            print(f"⚠️  Erreur lors de la création de l'utilisateur dev : {e}")
 
         # 2. Seeding des équipes (ignorer si déjà présentes)
         added = 0
@@ -85,7 +93,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)(:\d+)?",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

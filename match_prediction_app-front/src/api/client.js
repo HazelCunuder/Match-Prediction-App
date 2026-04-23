@@ -1,13 +1,12 @@
-const hostname = window.location.hostname;
-const AUTH_URL = `http://${hostname}:8000`;
-const ML_URL = `http://${hostname}:8001`;
+const AUTH_URL = `http://localhost`;
+const ML_URL = `http://localhost`;
 
 async function request(endpoint, options = {}) {
   // Récupération dynamique du token
   const token = localStorage.getItem('token');
   
-  // Automagical routing based on endpoint prefix
-  const baseUrl = (endpoint.startsWith('/auth') || endpoint.startsWith('/predictions') || endpoint.startsWith('/dashboard')) ? AUTH_URL : ML_URL;
+  // Automagical routing based on endpoint prefix - nginx will proxy to the right backend
+  const baseUrl = AUTH_URL;
 
   const headers = {
     'Content-Type': 'application/json',
