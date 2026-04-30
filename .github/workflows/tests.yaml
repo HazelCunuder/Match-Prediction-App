@@ -16,6 +16,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pytest pytest-cov
+        pip install -r FastAPI_App/requirements.txt
+        pip install -r FastAPI_ML/requirements.txt
+        pip install -r match_prediction_app-front/requirements.txt
     - name: Run tests with coverage
       run: |
         pytest --cov=./ --cov-report=xml
