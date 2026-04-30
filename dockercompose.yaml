@@ -1,88 +1,77 @@
-version: '3.8'
-
 services:
-  postgres_db:
-    image: postgres:15
-    container_name: fbpred_db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: REDACTED_PASSWORD
-      POSTGRES_INITDB_ARGS: "-c shared_preload_libraries=pg_stat_statements"
-    ports:
-      - "5433:5432"
-    volumes:
-      - bdd_ml_foot
-    networks:
-      - app_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  database:
+      image: postgres:17
+      env_file: .env
+      environment:
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_APP}
+        POSTGRES_DB: ${POSTGRES_DB_APP}
+      volumes:
+        - db-app:/var/lib/postgresql/data
+      ports:
+        - "5432:5432"
+      networks:
+        - network_app
 
-  api_app:
+  football-api:
     build:
       context: .
-      dockerfile: FastAPI_App/Dockerfile
-    container_name: api_app
-    environment:
-      DATABASE_URL: postgresql://postgres:REDACTED_PASSWORD@fbpred_db:5432/app_db
-      DEBUG: "false"
+      dockerfile: FastAPI_App/Dockerfile.api
     ports:
       - "8000:8000"
-    depends_on:
-      postgres_db:
-        condition: service_healthy
+    env_file: .env
     networks:
-      - app_network
-    volumes:
-      - ./FastAPI_App:/app/app
-      - ./shared:/app/shared
+      - network_app
+    depends_on:
+      - postgres-app
 
-  api_ml:
+  football-ml:
     build:
       context: .
-      dockerfile: FastAPI_ML/Dockerfile
-    container_name: api_ml
-    environment:
-      DATABASE_ML_URL: postgresql://postgres:REDACTED_PASSWORD@fbpred_db:5432/footballml_db
-      MODEL_PATH: ./Data/dataset/match_model_v1.joblib
-      DATASET_PATH: ./Data/dataset/completed_match_dataset_final.csv
-      DEBUG: "false"
+      dockerfile: FastAPI_ML/Dockerfile.api
     ports:
       - "8001:8001"
-    depends_on:
-      postgres_db:
-        condition: service_healthy
+    env_file: .env
     networks:
-      - app_network
-    volumes:
-      - ./FastAPI_ML:/app/app
-      - ./Data:/app/Data
-      - ./shared:/app/shared
+      - network_ml
+      - network_app
+    depends_on:
+      - postgres-ml
 
-  frontend:
+  football-front:
     build:
       context: .
-      dockerfile: match_prediction_app-front/Dockerfile
-    container_name: frontend
+      dockerfile: match_prediction_app-front/Dockerfile.front
+    ports:
+      - "8080:8080"
+    networks:
+      - network_app
+    depends_on:
+      - football-api
+      - football-ml
+
+  caddy:
+    image: caddy:latest
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      - api_app
-      - api_ml
-    networks:
-      - app_network
-    environment:
-      VUE_APP_API_URL: https://api_app:8000
-      VUE_APP_ML_API_URL: https://api_ml:8001
     volumes:
-      - ./certs:/etc/nginx/ssl:ro
-
-volumes:
-  bdd_ml_foot:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - network_app
+      - network_ml
+    depends_on:
+      - football-api
+      - football-ml
+      - football-front
 
 networks:
-  app_network:
-    driver: bridge
+  network_app:
+  network_ml:
+
+volumes:
+  db-app:
+  db-ml:
+  caddy_data:
+  caddy_config:

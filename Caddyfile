@@ -1,0 +1,46 @@
+# Caddy Configuration for Match Prediction App
+
+# Development: Use auto_https off and self-signed certs
+# Production: Remove auto_https off to use Let's Encrypt automatically
+
+{
+    auto_https off
+}
+
+# HTTP to HTTPS redirect
+:80 {
+    redir https://{host}{uri} permanent
+}
+
+# HTTPS listener
+:443 {
+    tls internal
+    
+    # Frontend - root path
+    handle / {
+        reverse_proxy football-front:8080
+    }
+    
+    # API routes
+    handle /api/* {
+        reverse_proxy football-api:8000
+    }
+    
+    # ML routes
+    handle /ml/* {
+        reverse_proxy football-ml:8001
+    }
+    
+    # Health checks
+    handle /health {
+        respond "OK" 200
+    }
+    
+    handle /api/health {
+        reverse_proxy football-api:8000
+    }
+    
+    handle /ml/health {
+        reverse_proxy football-ml:8001
+    }
+}
