@@ -70,4 +70,3 @@
 7. Accédez à l'application via votre navigateur en utilisant l'adresse suivante :
 
    > http://localhost:8000 | http://localhost:8001 | http://localhost:80
-

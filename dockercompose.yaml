@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:15
+    container_name: fbpred_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: REDACTED_PASSWORD
+      POSTGRES_INITDB_ARGS: "-c shared_preload_libraries=pg_stat_statements"
+    ports:
+      - "5433:5432"
+    volumes:
+      - bdd_ml_foot
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api_app:
+    build:
+      context: .
+      dockerfile: FastAPI_App/Dockerfile
+    container_name: api_app
+    environment:
+      DATABASE_URL: postgresql://postgres:REDACTED_PASSWORD@fbpred_db:5432/app_db
+      DEBUG: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - app_network
+    volumes:
+      - ./FastAPI_App:/app/app
+      - ./shared:/app/shared
+
+  api_ml:
+    build:
+      context: .
+      dockerfile: FastAPI_ML/Dockerfile
+    container_name: api_ml
+    environment:
+      DATABASE_ML_URL: postgresql://postgres:REDACTED_PASSWORD@fbpred_db:5432/footballml_db
+      MODEL_PATH: ./Data/dataset/match_model_v1.joblib
+      DATASET_PATH: ./Data/dataset/completed_match_dataset_final.csv
+      DEBUG: "false"
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - app_network
+    volumes:
+      - ./FastAPI_ML:/app/app
+      - ./Data:/app/Data
+      - ./shared:/app/shared
+
+  frontend:
+    build:
+      context: .
+      dockerfile: match_prediction_app-front/Dockerfile
+    container_name: frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api_app
+      - api_ml
+    networks:
+      - app_network
+    environment:
+      VUE_APP_API_URL: https://api_app:8000
+      VUE_APP_ML_API_URL: https://api_ml:8001
+    volumes:
+      - ./certs:/etc/nginx/ssl:ro
+
+volumes:
+  bdd_ml_foot:
+
+networks:
+  app_network:
+    driver: bridge

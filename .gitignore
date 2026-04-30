@@ -13,6 +13,10 @@ __pycache__/
 # Fichiers de configuration locaux
 .env
 
+# SSL/TLS Certificates (keep secure, generate locally)
+certs/
+*.pem
+
 # Cache de pytest
 .pytest_cache/
 

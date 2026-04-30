@@ -1,0 +1,100 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Python virtual environments
+venv/
+.venv/
+env/
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+*.cover
+.tox/
+.hypothesis/
+
+# IDE & editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Database files (local development only)
+*.db
+*.sqlite
+*.sqlite3
+mlflow.db
+
+# Documentation
+docs/
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Node modules (for frontend build)
+node_modules/
+
+# SSL certificates (generated locally)
+certs/*.pem
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+
+# Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# README and documentation in root
+README.md
+HTTPS_SETUP.md
+Docker_README.md
+brief.md
+plan_implementation.md
+logbook.md
+
+# Test files at root level
+test_db_ml.py
+
+# Data directory (optional - remove if you need it in container)
+# Data/
+
+# ML Notebooks directory
+ML/
+notebooks/
