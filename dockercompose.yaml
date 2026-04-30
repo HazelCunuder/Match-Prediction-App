@@ -10,7 +10,7 @@ services:
       ports:
         - "5432:5432"
       networks:
-        - network_app
+        - football_prediction
 
   football-api:
     build:
@@ -20,9 +20,9 @@ services:
       - "8000:8000"
     env_file: .env
     networks:
-      - network_app
+      - football_prediction
     depends_on:
-      - postgres-app
+      - database
 
   football-ml:
     build:
@@ -32,10 +32,9 @@ services:
       - "8001:8001"
     env_file: .env
     networks:
-      - network_ml
-      - network_app
+      - football_prediction
     depends_on:
-      - postgres-ml
+      - database
 
   football-front:
     build:
@@ -44,7 +43,7 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - network_app
+      - football_prediction
     depends_on:
       - football-api
       - football-ml
@@ -59,19 +58,16 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     networks:
-      - network_app
-      - network_ml
+      - football_prediction
     depends_on:
       - football-api
       - football-ml
       - football-front
 
 networks:
-  network_app:
-  network_ml:
+  football_prediction
 
 volumes:
-  db-app:
-  db-ml:
+  bdd_ml_foot:
   caddy_data:
   caddy_config:
